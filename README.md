@@ -2,6 +2,9 @@
 
 🐎 在 ComfyUI 中随时打开画板进行实时绘画！
 
+<img width="1253" height="795" alt="ScreenShot_2025-11-25_203347_779" src="https://github.com/user-attachments/assets/d295412f-7d1f-40ae-9e5f-567813865b7c" />
+
+
 ## 简介
 
 hosepen 是一个轻量级的 ComfyUI 插件，提供实时绘画功能和图像导入导出节点。无需额外依赖，开箱即用。
