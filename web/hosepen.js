@@ -1258,10 +1258,12 @@ function performTransformDrag(e) {
         layer.scaleY = newScaleY;
         
         // 获取原始内容的边界，找到内容中心
-        const tempBounds = getLayerContentBounds({ 
+        const tempLayer = { 
+            originalCanvas: layerBackup,
             canvas: layerBackup, 
             ctx: layerBackup.getContext('2d') 
-        });
+        };
+        const tempBounds = getLayerContentBounds(tempLayer);
         const contentCenterX = tempBounds.x + tempBounds.width / 2;
         const contentCenterY = tempBounds.y + tempBounds.height / 2;
         
@@ -1301,10 +1303,12 @@ function performTransformDrag(e) {
         layer.rotation = newRotation;
         
         // 获取原始内容的边界，找到内容中心
-        const tempBounds = getLayerContentBounds({ 
+        const tempLayer = { 
+            originalCanvas: layerBackup,
             canvas: layerBackup, 
             ctx: layerBackup.getContext('2d') 
-        });
+        };
+        const tempBounds = getLayerContentBounds(tempLayer);
         const contentCenterX = tempBounds.x + tempBounds.width / 2;
         const contentCenterY = tempBounds.y + tempBounds.height / 2;
         
@@ -1998,11 +2002,13 @@ function drawTransformControls() {
     const flipY = layer.flipV ? -1 : 1;
     ctx.scale(flipX, flipY);
     
-    // 使用内容边界而不是整个画布
+    // 使用内容边界而不是整个画布，并应用缩放
     const boundsCenterX = bounds.x + bounds.width / 2 - canvas.width / 2;
     const boundsCenterY = bounds.y + bounds.height / 2 - canvas.height / 2;
-    const halfWidth = bounds.width / 2;
-    const halfHeight = bounds.height / 2;
+    const scaledWidth = bounds.width * (layer.scaleX || 1);
+    const scaledHeight = bounds.height * (layer.scaleY || 1);
+    const halfWidth = scaledWidth / 2;
+    const halfHeight = scaledHeight / 2;
     
     // 移动到内容中心
     ctx.translate(boundsCenterX, boundsCenterY);
@@ -2014,7 +2020,7 @@ function drawTransformControls() {
     ctx.strokeStyle = '#2196F3';
     ctx.lineWidth = 2 / viewScale;
     ctx.setLineDash([10 / viewScale, 5 / viewScale]);
-    ctx.strokeRect(-halfWidth, -halfHeight, bounds.width, bounds.height);
+    ctx.strokeRect(-halfWidth, -halfHeight, scaledWidth, scaledHeight);
     ctx.setLineDash([]);
     
     const handleSize = 12 / viewScale; // 增大控制点视觉大小
@@ -2079,18 +2085,21 @@ function drawTransformControls() {
 
 // 计算图层内容的边界
 function getLayerContentBounds(layer) {
-    const imageData = layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+    // 如果有原始画布，使用原始画布计算边界（避免旋转影响）
+    const sourceCanvas = layer.originalCanvas || layer.canvas;
+    const sourceCtx = sourceCanvas.getContext('2d');
+    const imageData = sourceCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
     const data = imageData.data;
     
-    let minX = layer.canvas.width;
-    let minY = layer.canvas.height;
+    let minX = sourceCanvas.width;
+    let minY = sourceCanvas.height;
     let maxX = 0;
     let maxY = 0;
     
     // 扫描所有像素找到非透明区域
-    for (let y = 0; y < layer.canvas.height; y++) {
-        for (let x = 0; x < layer.canvas.width; x++) {
-            const index = (y * layer.canvas.width + x) * 4;
+    for (let y = 0; y < sourceCanvas.height; y++) {
+        for (let x = 0; x < sourceCanvas.width; x++) {
+            const index = (y * sourceCanvas.width + x) * 4;
             const alpha = data[index + 3];
             
             if (alpha > 0) {
@@ -2105,8 +2114,8 @@ function getLayerContentBounds(layer) {
     // 如果没有内容，返回默认边界
     if (minX > maxX) {
         return {
-            x: layer.canvas.width / 2 - 50,
-            y: layer.canvas.height / 2 - 50,
+            x: sourceCanvas.width / 2 - 50,
+            y: sourceCanvas.height / 2 - 50,
             width: 100,
             height: 100
         };
@@ -2117,8 +2126,8 @@ function getLayerContentBounds(layer) {
     return {
         x: Math.max(0, minX - padding),
         y: Math.max(0, minY - padding),
-        width: Math.min(layer.canvas.width, maxX - minX + padding * 2),
-        height: Math.min(layer.canvas.height, maxY - minY + padding * 2)
+        width: Math.min(sourceCanvas.width, maxX - minX + padding * 2),
+        height: Math.min(sourceCanvas.height, maxY - minY + padding * 2)
     };
 }
 
@@ -2142,8 +2151,8 @@ function getContentBoundsInScreenCoords(layer, bounds, margin = 0) {
     const worldCenterX = (layerCenterX - canvas.width / 2) * viewScale + canvas.width / 2 + viewOffsetX;
     const worldCenterY = (layerCenterY - canvas.height / 2) * viewScale + canvas.height / 2 + viewOffsetY;
     
-    const halfWidth = bounds.width / 2 * viewScale;
-    const halfHeight = bounds.height / 2 * viewScale;
+    const halfWidth = bounds.width / 2 * (layer.scaleX || 1) * viewScale;
+    const halfHeight = bounds.height / 2 * (layer.scaleY || 1) * viewScale;
     const expandedMargin = margin * viewScale;
     
     // 如果有旋转，计算旋转后的四个角点
