@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hosepen 图层移动功能测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+        }
+        .test-steps {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .test-steps h2 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        .test-steps ol {
+            line-height: 1.6;
+        }
+        .test-steps li {
+            margin-bottom: 8px;
+        }
+        .feature-list {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .feature-list h2 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .button-hint {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐎 Hosepen 图层移动功能测试</h1>
+        
+        <div class="button-hint">
+            <strong>💡 提示：</strong>点击右下角的 🐎 按钮打开绘画板
+        </div>
+        
+        <div class="feature-list">
+            <h2>✨ 新增功能</h2>
+            <ul>
+                <li><strong>🚀 自动初始化：</strong>启动时立即显示"图层 1"，无需手动创建</li>
+                <li><strong>⬆️ 上移图层：</strong>将当前选中的图层向上移动一层</li>
+                <li><strong>⬇️ 下移图层：</strong>将当前选中的图层向下移动一层</li>
+                <li><strong>🎨 UI优化：</strong>重新设计图层面板布局，透明度滑块显示更清晰，面板更紧凑</li>
+                <li><strong>🔧 灵活缩放：</strong>角点控制点等比例缩放，边缘控制点非等比例缩放（适用所有图层）</li>
+                <li><strong>🖱️ 自由拖拽：</strong>窗口和按钮可以拖拽到屏幕边界外，不受限制</li>
+                <li><strong>🔄 智能边界检测：</strong>自动检测图层是否已在最顶层或最底层</li>
+                <li><strong>📝 实时反馈：</strong>操作后显示成功提示信息</li>
+                <li><strong>↩️ 撤销支持：</strong>图层移动操作支持撤销/重做</li>
+            </ul>
+        </div>
+        
+        <div class="test-steps">
+            <h2>🧪 测试步骤</h2>
+            <ol>
+                <li>点击右下角的 🐎 按钮打开绘画窗口</li>
+                <li><strong>✨ 新特性：</strong>启动时会自动显示"图层 1"，无需手动创建</li>
+                <li><strong>🖱️ 拖拽测试：</strong>尝试拖拽窗口标题栏和🐎按钮到屏幕边界外</li>
+                <li>在右侧图层面板中，点击 <strong>➕</strong> 按钮创建更多图层</li>
+                <li>在不同图层上绘制一些内容（切换图层后绘制）</li>
+                <li><strong>📝 文本测试：</strong>添加一个文本图层，进入缩放模式，测试角点（等比例）和边缘（非等比例）缩放</li>
+                <li>选择一个中间的图层</li>
+                <li>点击 <strong>⬆️</strong> 按钮测试上移功能</li>
+                <li>点击 <strong>⬇️</strong> 按钮测试下移功能</li>
+                <li>尝试将图层移动到最顶层和最底层，观察边界提示</li>
+                <li>使用 Ctrl+Z 测试撤销功能</li>
+            </ol>
+        </div>
+        
+        <div class="feature-list">
+            <h2>🎯 预期效果</h2>
+            <ul>
+                <li>图层面板采用三行布局：基本信息、透明度控制、混合模式</li>
+                <li>透明度滑块有清晰的标签和数值显示</li>
+                <li>窗口和按钮可以自由拖拽，不受屏幕边界限制</li>
+                <li>角点控制点：所有图层都等比例缩放，保持内容比例</li>
+                <li>边缘控制点：所有图层都非等比例缩放，可以单独调整宽度或高度</li>
+                <li>图层在列表中的位置会实时更新</li>
+                <li>画布上的图层渲染顺序会相应改变</li>
+                <li>到达边界时会显示相应的提示信息</li>
+                <li>操作成功时会显示绿色的成功提示</li>
+                <li>当前选中的图层会保持选中状态</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="hosepen.js"></script>
+    <script>
+        // 初始化插件
+        document.addEventListener('DOMContentLoaded', function() {
+            createButton();
+            console.log('Hosepen 图层移动功能测试页面已加载');
+        });
+    </script>
+</body>
+</html>
