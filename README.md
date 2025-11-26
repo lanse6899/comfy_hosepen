@@ -142,7 +142,7 @@ comfy_hosepen/
 
 ## 更新日志
 
-### v1.0.0 (2024-11-24)
+### v1.0.0 (2025-11-24)
 - 初始版本发布
 - 支持实时绘画功能
 - 支持颜色和粗细调节
@@ -310,7 +310,7 @@ comfy_hosepen/
 
 ## Changelog
 
-### v1.0.0 (2024-11-24)
+### v1.0.0 (2025-11-24)
 - Initial release
 - Real-time drawing support
 - Color and size adjustment
