@@ -4,6 +4,7 @@
 
 <img width="1253" height="795" alt="ScreenShot_2025-11-25_203347_779" src="https://github.com/user-attachments/assets/d295412f-7d1f-40ae-9e5f-567813865b7c" />
 <img width="1682" height="945" alt="ScreenShot_2025-11-30_141421_783" src="https://github.com/user-attachments/assets/e8a0ec0e-a456-4d26-b901-47eb6e64f648" />
+<img width="1031" height="586" alt="ScreenShot_2025-11-30_143906_000" src="https://github.com/user-attachments/assets/1a7df986-ce14-4dd3-9222-d0ebdee75863" />
 
 
 ## 简介
