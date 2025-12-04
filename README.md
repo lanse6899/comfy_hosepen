@@ -161,7 +161,7 @@ comfy_hosepen/
 MIT License
 
 - **个人使用**：完全免费
-- **商用平台方和机构**：使用本插件需通知作者
+- **商用平台方和机构**：使用本插件需通知作者授权
 
 ## 联系方式
 
@@ -329,7 +329,7 @@ comfy_hosepen/
 MIT License
 
 - **Personal Use**: Completely free
-- **Commercial Platforms**: Please notify the author before use
+- **Commercial Platforms**: Using this plugin requires the author's authorization.
 
 ## Contact
 
