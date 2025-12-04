@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝波球的火柴人与动物（全屏画布版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            padding: 10px 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .title {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .instructions {
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .control-panel {
+            padding: 10px 20px;
+            background-color: #fff;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            z-index: 10;
+            min-height: fit-content;
+        }
+        .stickman-selector {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            min-width: 180px;
+        }
+        .type-selector {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            min-width: 150px;
+        }
+        .control-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .control-btn.add {
+            background-color: #34a853;
+        }
+        .control-btn.add:hover {
+            background-color: #2d974b;
+        }
+        .control-btn.reset {
+            background-color: #ea4335;
+        }
+        .control-btn.reset:hover {
+            background-color: #d93025;
+        }
+        .control-btn.delete {
+            background-color: #ff9800;
+        }
+        .control-btn.delete:hover {
+            background-color: #f57c00;
+        }
+        .control-btn.export {
+            background-color: #ff5722;
+        }
+        .control-btn.export:hover {
+            background-color: #e64a19;
+        }
+        .canvas-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
+        .size-input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .control-btn.canvas {
+            background-color: #9c27b0;
+        }
+        .control-btn.canvas:hover {
+            background-color: #7b1fa2;
+        }
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        .zoom-btn {
+            padding: 4px 8px;
+            background-color: #4285f4;
+        }
+        .zoom-btn:hover {
+            background-color: #3367d6;
+        }
+        .zoom-level {
+            min-width: 60px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+        #canvasContainer {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+        }
+        canvas {
+            cursor: default;
+            display: block;
+        }
+        canvas.dragging {
+            cursor: grabbing;
+        }
+        .status-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 3px;
+            color: #333;
+            font-size: 14px;
+            z-index: 5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .selected-indicator {
+            position: absolute;
+            border: 2px dashed #4285f4;
+            border-radius: 6px;
+            pointer-events: none;
+            display: none;
+            z-index: 4;
+        }
+        .tooltip {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .background-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background-color: #fff;
+            border-top: 1px solid #eee;
+            z-index: 10;
+            min-height: fit-content;
+        }
+        #bgImageInput {
+            display: none;
+        }
+        .bg-upload-btn {
+            background-color: #00acc1;
+        }
+        .bg-upload-btn:hover {
+            background-color: #00838f;
+        }
+        .bg-remove-btn {
+            background-color: #795548;
+        }
+        .bg-remove-btn:hover {
+            background-color: #6d4c41;
+        }
+        .bg-control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .opacity-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .opacity-slider {
+            width: 150px;
+        }
+        .opacity-value {
+            min-width: 40px;
+            text-align: center;
+        }
+        .bg-transform-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .bg-zoom-btn {
+            background-color: #558b2f;
+        }
+        .bg-zoom-btn:hover {
+            background-color: #33691e;
+        }
+        .bg-reset-btn {
+            background-color: #c62828;
+        }
+        .bg-reset-btn:hover {
+            background-color: #b71c1c;
+        }
+        .bg-status {
+            font-size: 13px;
+            color: #666;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2 class="title">蓝波球的火柴人与动物</h2>
+        <div class="instructions">
+            <span>角色操作：点击选择 → 拖拽移动 → 滚轮缩放角色 → 点击关节调整</span>
+            <span>画布操作：按住空格+拖拽移动 → 滚轮（空处）缩放画布 → 点击空白取消选择</span>
+            <span>背景操作：按住Alt+点击拖拽移动 → 按住Alt+滚轮缩放 → 点击"重置背景"恢复初始状态</span>
+        </div>
+    </div>
+    
+    <div class="control-panel">
+        <select class="type-selector" id="typeSelector">
+            <option value="human">火柴人（人类）</option>
+            <option value="horse">马</option>
+            <option value="elephant">大象</option>
+            <option value="cat">猫</option>
+            <option value="dog">狗</option>
+            <option value="bird">鸟</option>
+            <option value="snake">蛇</option>
+            <option value="dragon">龙</option>
+            <option value="sheep">羊</option>
+            <option value="rabbit">兔子</option>
+            <option value="giraffe">长颈鹿</option>
+            <option value="panda">熊猫</option>
+            <option value="chicken">鸡</option>
+            <option value="cow">牛</option>
+            <option value="mouse">老鼠</option>
+        </select>
+        <select class="stickman-selector" id="stickmanSelector">
+            <option value="-1">未选择任何角色</option>
+        </select>
+        <button class="control-btn add" id="addStickmanBtn">增加角色</button>
+        <button class="control-btn reset" id="resetBtn">选中角色姿态归零</button>
+        <button class="control-btn delete" id="deleteStickmanBtn">删除选中角色</button>
+        
+        <div class="canvas-controls">
+            <input type="number" class="size-input" id="canvasWidth" placeholder="宽度" value="1920">
+            <span>×</span>
+            <input type="number" class="size-input" id="canvasHeight" placeholder="高度" value="1080">
+            <button class="control-btn canvas" id="resizeCanvasBtn">调整画布</button>
+            
+            <div class="zoom-controls">
+                <button class="control-btn zoom-btn" id="zoomOutBtn">-</button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="control-btn zoom-btn" id="zoomInBtn">+</button>
+                <button class="control-btn canvas" id="resetViewBtn">重置视图</button>
+                <button class="control-btn export" id="exportImageBtn">📥 导出图像</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 背景图片控制区 -->
+    <div class="background-controls">
+        <label for="bgImageInput" class="control-btn bg-upload-btn">上传背景图片</label>
+        <input type="file" id="bgImageInput" accept="image/*">
+        <button class="control-btn bg-remove-btn" id="removeBgBtn">移除背景</button>
+        
+        <div class="bg-control-group">
+            <div class="opacity-control">
+                <label for="bgOpacity">透明度：</label>
+                <input type="range" id="bgOpacity" class="opacity-slider" min="0" max="100" value="100">
+                <span class="opacity-value" id="opacityValue">100%</span>
+            </div>
+            
+            <div class="bg-transform-controls">
+                <button class="control-btn bg-zoom-btn" id="bgZoomOutBtn">-</button>
+                <span class="zoom-level" id="bgZoomLevel">100%</span>
+                <button class="control-btn bg-zoom-btn" id="bgZoomInBtn">+</button>
+                <button class="control-btn bg-reset-btn" id="resetBgBtn">重置背景</button>
+                <span class="bg-status" id="bgStatus">背景状态：未加载</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div id="canvasContainer">
+            <div class="selected-indicator" id="selectedIndicator"></div>
+            <canvas id="stickmanCanvas" width="1920" height="1080"></canvas>
+        </div>
+        <div class="status-indicator" id="statusText">
+            状态：未选择任何角色（点击"增加角色"添加角色）
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('stickmanCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const selectedIndicator = document.getElementById('selectedIndicator');
+        const stickmanSelector = document.getElementById('stickmanSelector');
+        const typeSelector = document.getElementById('typeSelector');
+        const statusText = document.getElementById('statusText');
+        const canvasWidthInput = document.getElementById('canvasWidth');
+        const canvasHeightInput = document.getElementById('canvasHeight');
+        const zoomLevelDisplay = document.getElementById('zoomLevel');
+        
+        // 背景图片相关元素
+        const bgImageInput = document.getElementById('bgImageInput');
+        const removeBgBtn = document.getElementById('removeBgBtn');
+        const bgOpacitySlider = document.getElementById('bgOpacity');
+        const opacityValueDisplay = document.getElementById('opacityValue');
+        const bgZoomInBtn = document.getElementById('bgZoomInBtn');
+        const bgZoomOutBtn = document.getElementById('bgZoomOutBtn');
+        const bgZoomLevelDisplay = document.getElementById('bgZoomLevel');
+        const resetBgBtn = document.getElementById('resetBgBtn');
+        const bgStatusDisplay = document.getElementById('bgStatus');
+        
+        // 按钮元素
+        const addStickmanBtn = document.getElementById('addStickmanBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const deleteStickmanBtn = document.getElementById('deleteStickmanBtn');
+        const resizeCanvasBtn = document.getElementById('resizeCanvasBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const resetViewBtn = document.getElementById('resetViewBtn');
+        const exportImageBtn = document.getElementById('exportImageBtn');
+        
+        // 导出状态标志，防止重复点击
+        let isExporting = false;
+
+        // 角色颜色库
+        const stickmanColors = [
+            { line: '#333', joint: '#ff4757', jointDrag: '#ff6b6b', name: '红色' },
+            { line: '#1a73e8', joint: '#4285f4', jointDrag: '#73a7ff', name: '蓝色' },
+            { line: '#34a853', joint: '#34a853', jointDrag: '#66c285', name: '绿色' },
+            { line: '#fbbc05', joint: '#fbbc05', jointDrag: '#ffce47', name: '黄色' },
+            { line: '#8e24aa', joint: '#ba68c8', jointDrag: '#ce93d8', name: '紫色' },
+            { line: '#ff6b81', joint: '#ff8fa3', jointDrag: '#ffb3c1', name: '粉色' },
+            { line: '#70a1ff', joint: '#93bfff', jointDrag: '#b8d4ff', name: '浅蓝' },
+            { line: '#2ed573', joint: '#54e08d', jointDrag: '#7be8a5', name: '浅绿' },
+            { line: '#ff7f50', joint: '#ff9e7d', jointDrag: '#ffbea9', name: '橙色' },
+            { line: '#607d8b', joint: '#8dabc4', jointDrag: '#b9cad9', name: '灰色' },
+            { line: '#ff4081', joint: '#ff77a9', jointDrag: '#ffb8d1', name: '玫红' },
+            { line: '#00acc1', joint: '#4dd0e1', jointDrag: '#80deea', name: '青蓝' },
+            { line: '#7cb342', joint: '#aed581', jointDrag: '#dcedc8', name: '草绿' },
+            { line: '#ffca28', joint: '#ffee58', jointDrag: '#fff9c4', name: '亮黄' },
+            { line: '#455a64', joint: '#607d8b', jointDrag: '#90a4ae', name: '深灰' }
+        ];
+
+        // 角色类型配置（包含火柴人和14种动物）
+        const characterTypes = {
+            // 火柴人（人类）
+            human: {
+                name: "火柴人",
+                joints: [
+                    { x: 300, y: 150, r: 20, isDragging: false }, // 头部
+                    { x: 300, y: 220, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 280, r: 8, isDragging: false },  // 上躯干
+                    { x: 300, y: 360, r: 8, isDragging: false },  // 下躯干
+                    { x: 250, y: 250, r: 8, isDragging: false },  // 左肩
+                    { x: 350, y: 250, r: 8, isDragging: false },  // 右肩
+                    { x: 180, y: 280, r: 8, isDragging: false },  // 左肘
+                    { x: 420, y: 280, r: 8, isDragging: false },  // 右肘
+                    { x: 120, y: 290, r: 8, isDragging: false },  // 左手
+                    { x: 480, y: 290, r: 8, isDragging: false },  // 右手
+                    { x: 250, y: 450, r: 8, isDragging: false },  // 左膝
+                    { x: 350, y: 450, r: 8, isDragging: false },  // 右膝
+                    { x: 220, y: 580, r: 8, isDragging: false },  // 左脚
+                    { x: 380, y: 580, r: 8, isDragging: false }   // 右脚
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [1, 4], [4, 6], [6, 8], // 左臂
+                    [1, 5], [5, 7], [7, 9], // 右臂
+                    [3, 10], [10, 12],      // 左腿
+                    [3, 11], [11, 13]       // 右腿
+                ]
+            },
+            // 马
+            horse: {
+                name: "马",
+                joints: [
+                    { x: 300, y: 200, r: 18, isDragging: false }, // 头部
+                    { x: 300, y: 250, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 300, r: 10, isDragging: false }, // 躯干
+                    { x: 300, y: 350, r: 9, isDragging: false },  // 后躯
+                    { x: 260, y: 270, r: 8, isDragging: false },  // 左肩
+                    { x: 340, y: 270, r: 8, isDragging: false },  // 右肩
+                    { x: 220, y: 400, r: 8, isDragging: false },  // 左前腿
+                    { x: 380, y: 400, r: 8, isDragging: false },  // 右前腿
+                    { x: 250, y: 380, r: 8, isDragging: false },  // 左后胯
+                    { x: 350, y: 380, r: 8, isDragging: false },  // 右后胯
+                    { x: 210, y: 480, r: 8, isDragging: false },  // 左后腿
+                    { x: 390, y: 480, r: 8, isDragging: false },  // 右后腿
+                    { x: 300, y: 420, r: 7, isDragging: false },  // 尾巴根
+                    { x: 300, y: 460, r: 6, isDragging: false },  // 尾巴中
+                    { x: 300, y: 500, r: 5, isDragging: false },  // 尾巴尖
+                    { x: 280, y: 210, r: 5, isDragging: false },  // 左耳
+                    { x: 320, y: 210, r: 5, isDragging: false },  // 右耳
+                    { x: 300, y: 220, r: 6, isDragging: false },  // 鬃毛1
+                    { x: 300, y: 235, r: 6, isDragging: false }   // 鬃毛2
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 15], [0, 16],       // 耳朵
+                    [1, 17], [17, 18],      // 鬃毛
+                    [2, 4], [4, 6],         // 左前腿
+                    [2, 5], [5, 7],         // 右前腿
+                    [3, 8], [8, 10],        // 左后腿
+                    [3, 9], [9, 11],        // 右后腿
+                    [3, 12], [12, 13], [13, 14] // 尾巴
+                ]
+            },
+            // 大象
+            elephant: {
+                name: "大象",
+                joints: [
+                    { x: 300, y: 220, r: 25, isDragging: false }, // 头部（大）
+                    { x: 300, y: 280, r: 12, isDragging: false }, // 颈部
+                    { x: 300, y: 350, r: 15, isDragging: false }, // 躯干（粗壮）
+                    { x: 300, y: 420, r: 12, isDragging: false }, // 后躯
+                    { x: 250, y: 320, r: 12, isDragging: false }, // 左肩（粗壮）
+                    { x: 350, y: 320, r: 12, isDragging: false }, // 右肩（粗壮）
+                    { x: 220, y: 450, r: 10, isDragging: false }, // 左前腿
+                    { x: 380, y: 450, r: 10, isDragging: false }, // 右前腿
+                    { x: 240, y: 460, r: 12, isDragging: false }, // 左后胯（粗壮）
+                    { x: 360, y: 460, r: 12, isDragging: false }, // 右后胯（粗壮）
+                    { x: 210, y: 550, r: 10, isDragging: false }, // 左后爪
+                    { x: 390, y: 550, r: 10, isDragging: false }, // 右后爪
+                    { x: 300, y: 220, r: 8, isDragging: false },  // 鼻子根
+                    { x: 300, y: 300, r: 6, isDragging: false },  // 鼻子中
+                    { x: 300, y: 350, r: 5, isDragging: false },  // 鼻子尖
+                    { x: 230, y: 250, r: 10, isDragging: false }, // 左耳（大）
+                    { x: 370, y: 250, r: 10, isDragging: false }  // 右耳（大）
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [12, 13], [13, 14], // 长鼻子
+                    [0, 15], [0, 16],       // 大耳朵
+                    [2, 4], [4, 6],         // 左前腿（粗壮）
+                    [2, 5], [5, 7],         // 右前腿（粗壮）
+                    [3, 8], [8, 10],        // 左后腿（粗壮）
+                    [3, 9], [9, 11],        // 右后腿（粗壮）
+                ]
+            },
+            // 猫
+            cat: {
+                name: "猫",
+                joints: [
+                    { x: 300, y: 200, r: 18, isDragging: false }, // 头部
+                    { x: 300, y: 250, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 290, r: 8, isDragging: false },  // 躯干
+                    { x: 300, y: 330, r: 8, isDragging: false },  // 后躯
+                    { x: 260, y: 270, r: 8, isDragging: false },  // 左肩
+                    { x: 340, y: 270, r: 8, isDragging: false },  // 右肩
+                    { x: 210, y: 280, r: 8, isDragging: false },  // 左前爪
+                    { x: 390, y: 280, r: 8, isDragging: false },  // 右前爪
+                    { x: 250, y: 370, r: 8, isDragging: false },  // 左后胯
+                    { x: 350, y: 370, r: 8, isDragging: false },  // 右后胯
+                    { x: 200, y: 420, r: 8, isDragging: false },  // 左后爪
+                    { x: 400, y: 420, r: 8, isDragging: false },  // 右后爪
+                    { x: 280, y: 190, r: 5, isDragging: false },  // 左耳
+                    { x: 320, y: 190, r: 5, isDragging: false },  // 右耳
+                    { x: 300, y: 360, r: 8, isDragging: false }   // 尾巴根
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [0, 13],       // 耳朵
+                    [1, 4], [4, 6],         // 左前腿
+                    [1, 5], [5, 7],         // 右前腿
+                    [3, 8], [8, 10],        // 左后腿
+                    [3, 9], [9, 11],        // 右后腿
+                    [3, 14]                 // 尾巴根
+                ]
+            },
+            // 狗
+            dog: {
+                name: "狗",
+                joints: [
+                    { x: 300, y: 200, r: 20, isDragging: false }, // 头部
+                    { x: 300, y: 260, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 310, r: 8, isDragging: false },  // 躯干
+                    { x: 300, y: 360, r: 8, isDragging: false },  // 后躯
+                    { x: 260, y: 280, r: 8, isDragging: false },  // 左肩
+                    { x: 340, y: 280, r: 8, isDragging: false },  // 右肩
+                    { x: 210, y: 300, r: 8, isDragging: false },  // 左前爪
+                    { x: 390, y: 300, r: 8, isDragging: false },  // 右前爪
+                    { x: 250, y: 400, r: 8, isDragging: false },  // 左后胯
+                    { x: 350, y: 400, r: 8, isDragging: false },  // 右后胯
+                    { x: 190, y: 450, r: 8, isDragging: false },  // 左后爪
+                    { x: 410, y: 450, r: 8, isDragging: false },  // 右后爪
+                    { x: 300, y: 390, r: 8, isDragging: false },  // 尾巴根
+                    { x: 300, y: 430, r: 6, isDragging: false },  // 尾巴中
+                    { x: 300, y: 460, r: 5, isDragging: false }   // 尾巴尖
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [1, 4], [4, 6],         // 左前腿
+                    [1, 5], [5, 7],         // 右前腿
+                    [3, 8], [8, 10],        // 左后腿
+                    [3, 9], [9, 11],        // 右后腿
+                    [3, 12], [12, 13], [13, 14] // 尾巴
+                ]
+            },
+            // 鸟
+            bird: {
+                name: "鸟",
+                joints: [
+                    { x: 300, y: 200, r: 15, isDragging: false }, // 头部
+                    { x: 300, y: 230, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 260, r: 10, isDragging: false }, // 躯干
+                    { x: 300, y: 290, r: 8, isDragging: false },  // 身体后端
+                    { x: 270, y: 270, r: 8, isDragging: false },  // 左翅根
+                    { x: 330, y: 270, r: 8, isDragging: false },  // 右翅根
+                    { x: 230, y: 260, r: 6, isDragging: false },  // 左翅中
+                    { x: 370, y: 260, r: 6, isDragging: false },  // 右翅中
+                    { x: 200, y: 250, r: 5, isDragging: false },  // 左翅尖
+                    { x: 400, y: 250, r: 5, isDragging: false },  // 右翅尖
+                    { x: 280, y: 310, r: 6, isDragging: false },  // 左脚
+                    { x: 320, y: 310, r: 6, isDragging: false },  // 右脚
+                    { x: 300, y: 300, r: 7, isDragging: false },  // 尾羽根
+                    { x: 300, y: 330, r: 6, isDragging: false },  // 尾羽中
+                    { x: 300, y: 350, r: 5, isDragging: false }   // 尾羽尖
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [2, 4], [4, 6], [6, 8], // 左翅膀
+                    [2, 5], [5, 7], [7, 9], // 右翅膀
+                    [3, 10], [3, 11],       // 脚
+                    [3, 12], [12, 13], [13, 14] // 尾羽
+                ]
+            },
+            // 蛇
+            snake: {
+                name: "蛇",
+                joints: [
+                    { x: 300, y: 250, r: 12, isDragging: false }, // 头部
+                    { x: 330, y: 260, r: 10, isDragging: false }, // 身体1
+                    { x: 360, y: 270, r: 10, isDragging: false }, // 身体2
+                    { x: 390, y: 260, r: 10, isDragging: false }, // 身体3
+                    { x: 420, y: 250, r: 10, isDragging: false }, // 身体4
+                    { x: 450, y: 240, r: 10, isDragging: false }, // 身体5
+                    { x: 480, y: 230, r: 10, isDragging: false }, // 身体6
+                    { x: 510, y: 220, r: 10, isDragging: false }, // 身体7
+                    { x: 540, y: 210, r: 9, isDragging: false },  // 身体8
+                    { x: 570, y: 200, r: 8, isDragging: false },  // 尾部
+                    { x: 290, y: 240, r: 5, isDragging: false },  // 左眼
+                    { x: 310, y: 240, r: 5, isDragging: false },  // 右眼
+                    { x: 300, y: 255, r: 4, isDragging: false }   // 嘴
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], // 身体连接
+                    [0, 10], [0, 11], [0, 12] // 头部特征
+                ]
+            },
+            // 龙
+            dragon: {
+                name: "龙",
+                joints: [
+                    { x: 300, y: 200, r: 20, isDragging: false }, // 头部
+                    { x: 300, y: 260, r: 10, isDragging: false }, // 颈部
+                    { x: 300, y: 320, r: 12, isDragging: false }, // 躯干
+                    { x: 300, y: 380, r: 10, isDragging: false }, // 后躯
+                    { x: 260, y: 280, r: 9, isDragging: false },  // 左前爪根
+                    { x: 340, y: 280, r: 9, isDragging: false },  // 右前爪根
+                    { x: 210, y: 320, r: 8, isDragging: false },  // 左前爪
+                    { x: 390, y: 320, r: 8, isDragging: false },  // 右前爪
+                    { x: 250, y: 420, r: 9, isDragging: false },  // 左后爪根
+                    { x: 350, y: 420, r: 9, isDragging: false },  // 右后爪根
+                    { x: 200, y: 480, r: 8, isDragging: false },  // 左后爪
+                    { x: 400, y: 480, r: 8, isDragging: false },  // 右后爪
+                    { x: 280, y: 160, r: 8, isDragging: false },  // 左角
+                    { x: 320, y: 160, r: 8, isDragging: false },  // 右角
+                    { x: 300, y: 400, r: 8, isDragging: false },  // 尾巴根
+                    { x: 300, y: 450, r: 7, isDragging: false },  // 尾巴中1
+                    { x: 300, y: 500, r: 6, isDragging: false },  // 尾巴中2
+                    { x: 300, y: 550, r: 5, isDragging: false },  // 尾巴尖
+                    { x: 330, y: 220, r: 6, isDragging: false },  // 龙须1
+                    { x: 340, y: 230, r: 5, isDragging: false }   // 龙须2
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [0, 13],       // 角
+                    [0, 18], [18, 19],      // 龙须
+                    [2, 4], [4, 6],         // 左前爪
+                    [2, 5], [5, 7],         // 右前爪
+                    [3, 8], [8, 10],        // 左后爪
+                    [3, 9], [9, 11],        // 右后爪
+                    [3, 14], [14, 15], [15, 16], [16, 17] // 长尾巴
+                ]
+            },
+            // 羊
+            sheep: {
+                name: "羊",
+                joints: [
+                    { x: 300, y: 220, r: 20, isDragging: false }, // 头部
+                    { x: 300, y: 280, r: 10, isDragging: false }, // 颈部
+                    { x: 300, y: 340, r: 12, isDragging: false }, // 躯干
+                    { x: 300, y: 400, r: 10, isDragging: false }, // 后躯
+                    { x: 260, y: 310, r: 9, isDragging: false },  // 左肩
+                    { x: 340, y: 310, r: 9, isDragging: false },  // 右肩
+                    { x: 220, y: 420, r: 8, isDragging: false },  // 左前腿
+                    { x: 380, y: 420, r: 8, isDragging: false },  // 右前腿
+                    { x: 250, y: 430, r: 9, isDragging: false },  // 左后胯
+                    { x: 350, y: 430, r: 9, isDragging: false },  // 右后胯
+                    { x: 210, y: 520, r: 8, isDragging: false },  // 左后腿
+                    { x: 390, y: 520, r: 8, isDragging: false },  // 右后腿
+                    { x: 270, y: 190, r: 7, isDragging: false },  // 左角1
+                    { x: 250, y: 170, r: 6, isDragging: false },  // 左角2
+                    { x: 330, y: 190, r: 7, isDragging: false },  // 右角1
+                    { x: 350, y: 170, r: 6, isDragging: false },  // 右角2
+                    { x: 300, y: 420, r: 7, isDragging: false },  // 尾巴
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [12, 13],      // 左角
+                    [0, 14], [14, 15],      // 右角
+                    [2, 4], [4, 6],         // 左前腿
+                    [2, 5], [5, 7],         // 右前腿
+                    [3, 8], [8, 10],        // 左后腿
+                    [3, 9], [9, 11],        // 右后腿
+                    [3, 16]                 // 尾巴
+                ]
+            },
+            // 兔子
+            rabbit: {
+                name: "兔子",
+                joints: [
+                    { x: 300, y: 220, r: 18, isDragging: false }, // 头部
+                    { x: 300, y: 260, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 300, r: 10, isDragging: false }, // 躯干
+                    { x: 300, y: 340, r: 8, isDragging: false },  // 后躯
+                    { x: 270, y: 280, r: 8, isDragging: false },  // 左肩
+                    { x: 330, y: 280, r: 8, isDragging: false },  // 右肩
+                    { x: 240, y: 300, r: 7, isDragging: false },  // 左前爪
+                    { x: 360, y: 300, r: 7, isDragging: false },  // 右前爪
+                    { x: 260, y: 380, r: 10, isDragging: false }, // 左后胯（粗壮）
+                    { x: 340, y: 380, r: 10, isDragging: false }, // 右后胯（粗壮）
+                    { x: 230, y: 450, r: 8, isDragging: false },  // 左后爪
+                    { x: 370, y: 450, r: 8, isDragging: false },  // 右后爪
+                    { x: 270, y: 150, r: 6, isDragging: false },  // 左耳（长）
+                    { x: 330, y: 150, r: 6, isDragging: false },  // 右耳（长）
+                    { x: 300, y: 370, r: 5, isDragging: false }   // 短尾巴
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [0, 13],       // 长耳朵
+                    [1, 4], [4, 6],         // 左前腿
+                    [1, 5], [5, 7],         // 右前腿
+                    [3, 8], [8, 10],        // 左后腿（粗壮）
+                    [3, 9], [9, 11],        // 右后腿（粗壮）
+                    [3, 14]                 // 短尾巴
+                ]
+            },
+            // 长颈鹿
+            giraffe: {
+                name: "长颈鹿",
+                joints: [
+                    { x: 300, y: 120, r: 22, isDragging: false }, // 头部
+                    { x: 300, y: 180, r: 10, isDragging: false }, // 脖子1（长）
+                    { x: 300, y: 240, r: 10, isDragging: false }, // 脖子2（长）
+                    { x: 300, y: 300, r: 12, isDragging: false }, // 躯干
+                    { x: 300, y: 360, r: 10, isDragging: false }, // 后躯
+                    { x: 260, y: 320, r: 10, isDragging: false }, // 左肩
+                    { x: 340, y: 320, r: 10, isDragging: false }, // 右肩
+                    { x: 230, y: 500, r: 9, isDragging: false },  // 左前腿（长）
+                    { x: 370, y: 500, r: 9, isDragging: false },  // 右前腿（长）
+                    { x: 250, y: 380, r: 10, isDragging: false }, // 左后胯
+                    { x: 350, y: 380, r: 10, isDragging: false }, // 右后胯
+                    { x: 220, y: 550, r: 9, isDragging: false },  // 左后腿（长）
+                    { x: 380, y: 550, r: 9, isDragging: false },  // 右后腿（长）
+                    { x: 280, y: 110, r: 6, isDragging: false },  // 左耳
+                    { x: 320, y: 110, r: 6, isDragging: false },  // 右耳
+                    { x: 300, y: 390, r: 8, isDragging: false },  // 尾巴根
+                    { x: 300, y: 430, r: 6, isDragging: false }   // 尾巴尖
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], [3, 4], // 长脖子+躯干
+                    [0, 13], [0, 14],       // 耳朵
+                    [3, 5], [5, 7],         // 左前腿（长）
+                    [3, 6], [6, 8],         // 右前腿（长）
+                    [4, 9], [9, 11],        // 左后腿（长）
+                    [4, 10], [10, 12],      // 右后腿（长）
+                    [4, 15], [15, 16]       // 尾巴
+                ]
+            },
+            // 熊猫
+            panda: {
+                name: "熊猫",
+                joints: [
+                    { x: 300, y: 220, r: 22, isDragging: false }, // 头部（圆）
+                    { x: 300, y: 270, r: 10, isDragging: false }, // 颈部
+                    { x: 300, y: 330, r: 15, isDragging: false }, // 躯干（圆胖）
+                    { x: 300, y: 390, r: 12, isDragging: false }, // 后躯
+                    { x: 260, y: 300, r: 10, isDragging: false }, // 左肩
+                    { x: 340, y: 300, r: 10, isDragging: false }, // 右肩
+                    { x: 220, y: 350, r: 9, isDragging: false },  // 左前爪（短）
+                    { x: 380, y: 350, r: 9, isDragging: false },  // 右前爪（短）
+                    { x: 250, y: 430, r: 10, isDragging: false }, // 左后胯
+                    { x: 350, y: 430, r: 10, isDragging: false }, // 右后胯
+                    { x: 220, y: 480, r: 9, isDragging: false },  // 左后爪（短）
+                    { x: 380, y: 480, r: 9, isDragging: false },  // 右后爪（短）
+                    { x: 275, y: 210, r: 8, isDragging: false },  // 左耳（黑）
+                    { x: 325, y: 210, r: 8, isDragging: false },  // 右耳（黑）
+                    { x: 300, y: 420, r: 7, isDragging: false },  // 短尾巴
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干（圆胖）
+                    [0, 12], [0, 13],       // 耳朵（黑）
+                    [2, 4], [4, 6],         // 左前腿（短）
+                    [2, 5], [5, 7],         // 右前腿（短）
+                    [3, 8], [8, 10],        // 左后腿（短）
+                    [3, 9], [9, 11],        // 右后腿（短）
+                    [3, 14]                 // 短尾巴
+                ]
+            },
+            // 鸡
+            chicken: {
+                name: "鸡",
+                joints: [
+                    { x: 300, y: 220, r: 16, isDragging: false }, // 头部
+                    { x: 300, y: 250, r: 8, isDragging: false },  // 颈部
+                    { x: 300, y: 280, r: 10, isDragging: false }, // 躯干
+                    { x: 300, y: 310, r: 8, isDragging: false },  // 身体后端
+                    { x: 270, y: 270, r: 7, isDragging: false },  // 左翅根
+                    { x: 330, y: 270, r: 7, isDragging: false },  // 右翅根
+                    { x: 240, y: 265, r: 6, isDragging: false },  // 左翅尖
+                    { x: 360, y: 265, r: 6, isDragging: false },  // 右翅尖
+                    { x: 280, y: 340, r: 7, isDragging: false },  // 左脚根
+                    { x: 320, y: 340, r: 7, isDragging: false },  // 右脚根
+                    { x: 260, y: 380, r: 6, isDragging: false },  // 左脚爪
+                    { x: 340, y: 380, r: 6, isDragging: false },  // 右脚爪
+                    { x: 300, y: 320, r: 7, isDragging: false },  // 尾羽根
+                    { x: 300, y: 350, r: 6, isDragging: false },  // 尾羽中
+                    { x: 300, y: 370, r: 5, isDragging: false },  // 尾羽尖
+                    { x: 300, y: 200, r: 6, isDragging: false },  // 鸡冠
+                    { x: 310, y: 225, r: 5, isDragging: false }   // 鸡喙
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 15], [0, 16],       // 鸡冠和鸡喙
+                    [2, 4], [4, 6],         // 左翅膀
+                    [2, 5], [5, 7],         // 右翅膀
+                    [3, 8], [8, 10],        // 左脚
+                    [3, 9], [9, 11],        // 右脚
+                    [3, 12], [12, 13], [13, 14] // 尾羽
+                ]
+            },
+            // 牛
+            cow: {
+                name: "牛",
+                joints: [
+                    { x: 300, y: 220, r: 22, isDragging: false }, // 头部
+                    { x: 300, y: 280, r: 12, isDragging: false }, // 颈部
+                    { x: 300, y: 350, r: 15, isDragging: false }, // 躯干（粗壮）
+                    { x: 300, y: 420, r: 12, isDragging: false }, // 后躯
+                    { x: 250, y: 320, r: 12, isDragging: false }, // 左肩（粗壮）
+                    { x: 350, y: 320, r: 12, isDragging: false }, // 右肩（粗壮）
+                    { x: 210, y: 450, r: 10, isDragging: false }, // 左前腿
+                    { x: 380, y: 450, r: 10, isDragging: false }, // 右前腿
+                    { x: 240, y: 460, r: 12, isDragging: false }, // 左后胯（粗壮）
+                    { x: 360, y: 460, r: 12, isDragging: false }, // 右后胯（粗壮）
+                    { x: 210, y: 550, r: 10, isDragging: false }, // 左后爪
+                    { x: 390, y: 550, r: 10, isDragging: false }, // 右后爪
+                    { x: 270, y: 200, r: 8, isDragging: false },  // 左角
+                    { x: 330, y: 200, r: 8, isDragging: false },  // 右角
+                    { x: 300, y: 450, r: 8, isDragging: false },  // 尾巴根
+                    { x: 300, y: 490, r: 6, isDragging: false },  // 尾巴尖
+                    { x: 320, y: 230, r: 6, isDragging: false }   // 牛鼻
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [0, 13],       // 角
+                    [0, 16],                // 牛鼻
+                    [2, 4], [4, 6],         // 左前腿（粗壮）
+                    [2, 5], [5, 7],         // 右前腿（粗壮）
+                    [3, 8], [8, 10],        // 左后腿（粗壮）
+                    [3, 9], [9, 11],        // 右后腿（粗壮）
+                    [3, 14], [14, 15]       // 尾巴
+                ]
+            },
+            // 老鼠
+            mouse: {
+                name: "老鼠",
+                joints: [
+                    { x: 300, y: 220, r: 15, isDragging: false }, // 头部
+                    { x: 300, y: 250, r: 7, isDragging: false },  // 颈部
+                    { x: 300, y: 280, r: 9, isDragging: false },  // 躯干
+                    { x: 300, y: 310, r: 7, isDragging: false },  // 后躯
+                    { x: 280, y: 260, r: 7, isDragging: false },  // 左肩
+                    { x: 320, y: 260, r: 7, isDragging: false },  // 右肩
+                    { x: 250, y: 270, r: 6, isDragging: false },  // 左前爪
+                    { x: 350, y: 270, r: 6, isDragging: false },  // 右前爪
+                    { x: 280, y: 320, r: 7, isDragging: false },  // 左后胯
+                    { x: 320, y: 320, r: 7, isDragging: false },  // 右后胯
+                    { x: 250, y: 350, r: 6, isDragging: false },  // 左后爪
+                    { x: 350, y: 350, r: 6, isDragging: false },  // 右后爪
+                    { x: 285, y: 210, r: 5, isDragging: false },  // 左耳
+                    { x: 315, y: 210, r: 5, isDragging: false },  // 右耳
+                    { x: 300, y: 320, r: 6, isDragging: false },  // 尾巴根
+                    { x: 300, y: 360, r: 5, isDragging: false },  // 尾巴中1
+                    { x: 300, y: 400, r: 4, isDragging: false },  // 尾巴中2
+                    { x: 300, y: 440, r: 3, isDragging: false }   // 尾巴尖
+                ],
+                connections: [
+                    [0, 1], [1, 2], [2, 3], // 躯干
+                    [0, 12], [0, 13],       // 耳朵
+                    [1, 4], [4, 6],         // 左前爪
+                    [1, 5], [5, 7],         // 右前爪
+                    [3, 8], [8, 10],        // 左后腿
+                    [3, 9], [9, 11],        // 右后腿
+                    [3, 14], [14, 15], [15, 16], [16, 17] // 长尾巴
+                ]
+            }
+        };
+
+        // 应用状态
+        let appState = {
+            selectedIndex: -1, // 当前选中的角色索引（-1为未选中）
+            isDraggingJoint: false, // 是否在拖拽关节
+            isDraggingBody: false,  // 是否在拖拽整体
+            isDraggingCanvas: false, // 是否在拖拽画布
+            isDraggingBackground: false, // 是否在拖拽背景
+            isSpacePressed: false,   // 是否按下空格键
+            isAltPressed: false,     // 是否按下Alt键（用于背景操作）
+            lastMousePos: { x: 0, y: 0 }, // 上次鼠标位置
+            canvasOffset: { x: 0, y: 0 },  // 画布偏移量（用于平移）
+            canvasScale: 1,               // 画布缩放比例（1=100%）
+            minScale: 0.3,                // 最小缩放比例
+            maxScale: 3,                  // 最大缩放比例
+            background: {
+                image: null,               // 背景图片对象
+                opacity: 100,              // 背景透明度（0-100）
+                scale: 1,                  // 背景缩放比例（1=100%）
+                offset: { x: 0, y: 0 },    // 背景偏移量（用于平移）
+                initialOffset: { x: 0, y: 0 }, // 初始偏移量
+                initialScale: 1            // 初始缩放比例
+            }
+        };
+
+        // 存储所有角色
+        let allStickmen = [];
+
+        // 更新选择器选项
+        function updateSelector() {
+            const currentValue = stickmanSelector.value;
+            
+            stickmanSelector.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '-1';
+            defaultOption.textContent = '未选择任何角色';
+            stickmanSelector.appendChild(defaultOption);
+            
+            allStickmen.forEach((stickman, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${characterTypes[stickman.type].name} ${index + 1}（${stickman.color.name}）`;
+                stickmanSelector.appendChild(option);
+            });
+            
+            if (currentValue === '-1' || appState.selectedIndex === -1) {
+                stickmanSelector.value = '-1';
+            } else {
+                if (appState.selectedIndex < allStickmen.length) {
+                    stickmanSelector.value = appState.selectedIndex.toString();
+                } else {
+                    stickmanSelector.value = '-1';
+                }
+            }
+        }
+
+        // 更新选中指示器
+        function updateSelectedIndicator() {
+            if (appState.selectedIndex === -1) {
+                selectedIndicator.style.display = 'none';
+                return;
+            }
+
+            const stickman = allStickmen[appState.selectedIndex];
+            if (!stickman) return;
+
+            // 计算角色边界（考虑画布缩放和平移）
+            const joints = stickman.joints;
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+
+            joints.forEach(joint => {
+                const x = (joint.x * stickman.scale + stickman.offset.x) * appState.canvasScale + appState.canvasOffset.x;
+                const y = (joint.y * stickman.scale + stickman.offset.y) * appState.canvasScale + appState.canvasOffset.y;
+                minX = Math.min(minX, x - joint.r * stickman.scale * appState.canvasScale);
+                maxX = Math.max(maxX, x + joint.r * stickman.scale * appState.canvasScale);
+                minY = Math.min(minY, y - joint.r * stickman.scale * appState.canvasScale);
+                maxY = Math.max(maxY, y + joint.r * stickman.scale * appState.canvasScale);
+            });
+
+            // 设置指示器位置和大小并显示
+            selectedIndicator.style.left = `${minX - 10}px`;
+            selectedIndicator.style.top = `${minY - 10}px`;
+            selectedIndicator.style.width = `${maxX - minX + 20}px`;
+            selectedIndicator.style.height = `${maxY - minY + 20}px`;
+            selectedIndicator.style.display = 'block';
+        }
+
+        // 绘制线段（考虑画布缩放和平移）
+        function drawLine(fromJoint, toJoint, color, scale, offset) {
+            ctx.beginPath();
+            ctx.moveTo(
+                (fromJoint.x * scale + offset.x) * appState.canvasScale + appState.canvasOffset.x,
+                (fromJoint.y * scale + offset.y) * appState.canvasScale + appState.canvasOffset.y
+            );
+            ctx.lineTo(
+                (toJoint.x * scale + offset.x) * appState.canvasScale + appState.canvasOffset.x,
+                (toJoint.y * scale + offset.y) * appState.canvasScale + appState.canvasOffset.y
+            );
+            ctx.strokeStyle = color.line;
+            ctx.lineWidth = 5 * scale * appState.canvasScale;
+            ctx.stroke();
+        }
+
+        // 绘制单个角色（考虑画布缩放和平移）
+        function drawSingleStickman(stickman, isSelected) {
+            const { color, scale, offset, joints, connections } = stickman;
+
+            // 绘制身体结构
+            connections.forEach(connection => {
+                const fromJoint = joints[connection[0]];
+                const toJoint = joints[connection[1]];
+                drawLine(fromJoint, toJoint, color, scale, offset);
+            });
+
+            // 绘制关节点
+            joints.forEach(joint => {
+                ctx.beginPath();
+                ctx.arc(
+                    (joint.x * scale + offset.x) * appState.canvasScale + appState.canvasOffset.x,
+                    (joint.y * scale + offset.y) * appState.canvasScale + appState.canvasOffset.y,
+                    joint.r * scale * appState.canvasScale,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = joint.isDragging ? color.jointDrag : color.joint;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2 * scale * appState.canvasScale;
+                ctx.stroke();
+            });
+
+            // 选中状态绘制虚线框
+            if (isSelected) {
+                ctx.strokeStyle = 'rgba(66, 133, 244, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.rect(
+                    (Math.min(...joints.map(j => j.x)) - 20) * scale * appState.canvasScale + offset.x * appState.canvasScale + appState.canvasOffset.x,
+                    (Math.min(...joints.map(j => j.y)) - 20) * scale * appState.canvasScale + offset.y * appState.canvasScale + appState.canvasOffset.y,
+                    (Math.max(...joints.map(j => j.x)) - Math.min(...joints.map(j => j.x)) + 40) * scale * appState.canvasScale,
+                    (Math.max(...joints.map(j => j.y)) - Math.min(...joints.map(j => j.y)) + 40) * scale * appState.canvasScale
+                );
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        // 绘制背景图片（考虑画布缩放、平移以及自身的缩放和平移）
+        function drawBackground() {
+            if (!appState.background.image) return;
+            
+            // 保存当前上下文状态
+            ctx.save();
+            
+            // 应用画布变换
+            ctx.translate(appState.canvasOffset.x, appState.canvasOffset.y);
+            ctx.scale(appState.canvasScale, appState.canvasScale);
+            
+            // 应用背景自身的变换
+            ctx.translate(appState.background.offset.x, appState.background.offset.y);
+            ctx.scale(appState.background.scale, appState.background.scale);
+            
+            // 设置透明度
+            ctx.globalAlpha = appState.background.opacity / 100;
+            
+            // 绘制图片
+            ctx.drawImage(
+                appState.background.image, 
+                -appState.background.image.width / 2,  // 居中绘制
+                -appState.background.image.height / 2,
+                appState.background.image.width, 
+                appState.background.image.height
+            );
+            
+            // 恢复上下文状态
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
+
+        // 更新背景状态显示
+        function updateBackgroundStatus() {
+            if (!appState.background.image) {
+                bgStatusDisplay.textContent = "背景状态：未加载";
+                return;
+            }
+            
+            bgStatusDisplay.textContent = 
+                `背景状态：已加载 | 缩放: ${Math.round(appState.background.scale * 100)}% | 位置: (${Math.round(appState.background.offset.x)}, ${Math.round(appState.background.offset.y)})`;
+        }
+
+        // 绘制画布边界框
+        function drawCanvasBorder() {
+            ctx.save();
+            
+            // 应用画布变换
+            ctx.translate(appState.canvasOffset.x, appState.canvasOffset.y);
+            ctx.scale(appState.canvasScale, appState.canvasScale);
+            
+            // 绘制边界框
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 2 / appState.canvasScale; // 线宽随缩放调整
+            ctx.setLineDash([5 / appState.canvasScale, 5 / appState.canvasScale]);
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制四个角的标记
+            const cornerSize = 10 / appState.canvasScale;
+            ctx.setLineDash([]);
+            ctx.lineWidth = 2 / appState.canvasScale;
+            
+            // 左上角
+            ctx.beginPath();
+            ctx.moveTo(0, cornerSize);
+            ctx.lineTo(0, 0);
+            ctx.lineTo(cornerSize, 0);
+            ctx.stroke();
+            
+            // 右上角
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - cornerSize, 0);
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(canvas.width, cornerSize);
+            ctx.stroke();
+            
+            // 左下角
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - cornerSize);
+            ctx.lineTo(0, canvas.height);
+            ctx.lineTo(cornerSize, canvas.height);
+            ctx.stroke();
+            
+            // 右下角
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - cornerSize, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height - cornerSize);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        // 绘制所有元素（先背景，再角色，最后边界框）
+        function drawAllStickmen() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 先绘制背景
+            drawBackground();
+            
+            // 再绘制所有角色
+            allStickmen.forEach((stickman, index) => {
+                drawSingleStickman(stickman, index === appState.selectedIndex);
+            });
+            
+            // 最后绘制画布边界框
+            drawCanvasBorder();
+            
+            updateSelectedIndicator();
+            updateBackgroundStatus();
+        }
+
+        // 坐标转换：画布显示坐标 -> 实际世界坐标（考虑缩放和平移）
+        function canvasToWorld(x, y) {
+            return {
+                x: (x - appState.canvasOffset.x) / appState.canvasScale,
+                y: (y - appState.canvasOffset.y) / appState.canvasScale
+            };
+        }
+
+        // 坐标转换：世界坐标 -> 角色本地坐标
+        function worldToLocal(x, y, stickman) {
+            return {
+                x: (x - stickman.offset.x) / stickman.scale,
+                y: (y - stickman.offset.y) / stickman.scale
+            };
+        }
+
+        // 检测点是否在关节内（考虑画布缩放和平移）
+        function isPointInJoint(joint, x, y, scale, offset) {
+            const worldPos = canvasToWorld(x, y);
+            const dx = worldPos.x - (joint.x * scale + offset.x);
+            const dy = worldPos.y - (joint.y * scale + offset.y);
+            return dx * dx + dy * dy <= (joint.r * scale) * (joint.r * scale);
+        }
+
+        // 检测点是否在角色范围内（非关节区域）
+        function isPointInStickmanArea(x, y, stickman) {
+            const worldPos = canvasToWorld(x, y);
+            const joints = stickman.joints;
+            const minX = Math.min(...joints.map(j => j.x)) * stickman.scale + stickman.offset.x;
+            const maxX = Math.max(...joints.map(j => j.x)) * stickman.scale + stickman.offset.x;
+            const minY = Math.min(...joints.map(j => j.y)) * stickman.scale + stickman.offset.y;
+            const maxY = Math.max(...joints.map(j => j.y)) * stickman.scale + stickman.offset.y;
+
+            // 在角色范围内，但不在任何关节上
+            if (worldPos.x >= minX - 20 && worldPos.x <= maxX + 20 && 
+                worldPos.y >= minY - 20 && worldPos.y <= maxY + 20) {
+                return !joints.some(joint => isPointInJoint(joint, x, y, stickman.scale, stickman.offset));
+            }
+            return false;
+        }
+
+        // 检测点是否在任何角色上
+        function isPointOnAnyStickman(x, y) {
+            for (const stickman of allStickmen) {
+                // 检查是否在关节上
+                if (stickman.joints.some(joint => isPointInJoint(joint, x, y, stickman.scale, stickman.offset))) {
+                    return true;
+                }
+                // 检查是否在主体区域
+                if (isPointInStickmanArea(x, y, stickman)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 鼠标按下事件
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            appState.lastMousePos = { x, y };
+            appState.isDraggingJoint = false;
+            appState.isDraggingBody = false;
+            appState.isDraggingCanvas = false;
+            appState.isDraggingBackground = false;
+
+            // 如果按下了Alt键，进入背景拖拽模式
+            if (appState.isAltPressed && appState.background.image) {
+                appState.isDraggingBackground = true;
+                canvas.classList.add('dragging');
+                updateStatus('正在拖拽背景图片...');
+                return;
+            }
+
+            // 如果按下了空格键，进入画布拖拽模式
+            if (appState.isSpacePressed) {
+                appState.isDraggingCanvas = true;
+                canvas.classList.add('dragging');
+                updateStatus('正在拖拽画布...');
+                return;
+            }
+
+            // 检查是否点击了空白区域（取消选中）
+            if (!isPointOnAnyStickman(x, y)) {
+                appState.selectedIndex = -1; // 重置为未选中
+                allStickmen.forEach(s => s.joints.forEach(j => j.isDragging = false));
+                updateSelector();
+                updateStatus('状态：未选择任何角色（点击角色开始操作）');
+                drawAllStickmen();
+                return;
+            }
+
+            // 检查是否点击了任何角色的关节
+            let jointClicked = false;
+            allStickmen.forEach((stickman, index) => {
+                stickman.joints.forEach(joint => {
+                    if (isPointInJoint(joint, x, y, stickman.scale, stickman.offset)) {
+                        // 重置所有关节拖拽状态
+                        allStickmen.forEach(s => s.joints.forEach(j => j.isDragging = false));
+                        joint.isDragging = true;
+                        appState.selectedIndex = index;
+                        appState.isDraggingJoint = true;
+                        jointClicked = true;
+                        stickmanSelector.value = index;
+                        updateStatus(`正在调整${characterTypes[stickman.type].name} ${index + 1}的关节`);
+                    }
+                });
+            });
+
+            // 如果没点击关节，检查是否点击了角色区域
+            if (!jointClicked) {
+                for (let i = allStickmen.length - 1; i >= 0; i--) {
+                    const stickman = allStickmen[i];
+                    if (isPointInStickmanArea(x, y, stickman)) {
+                        appState.selectedIndex = i;
+                        appState.isDraggingBody = true;
+                        stickmanSelector.value = i;
+                        canvas.classList.add('dragging');
+                        updateStatus(`正在移动${characterTypes[stickman.type].name} ${i + 1}`);
+                        break;
+                    }
+                }
+            }
+
+            drawAllStickmen();
+        });
+
+        // 鼠标移动事件
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const dx = x - appState.lastMousePos.x;
+            const dy = y - appState.lastMousePos.y;
+            appState.lastMousePos = { x, y };
+
+            // 拖拽背景
+            if (appState.isDraggingBackground && appState.background.image) {
+                // 转换鼠标移动增量到世界坐标
+                const worldDx = dx / appState.canvasScale;
+                const worldDy = dy / appState.canvasScale;
+                appState.background.offset.x += worldDx;
+                appState.background.offset.y += worldDy;
+                drawAllStickmen();
+                return;
+            }
+
+            // 拖拽画布
+            if (appState.isDraggingCanvas) {
+                appState.canvasOffset.x += dx;
+                appState.canvasOffset.y += dy;
+                drawAllStickmen();
+                return;
+            }
+
+            // 未选中任何角色时不处理其他移动
+            if (appState.selectedIndex === -1) return;
+
+            const selectedStickman = allStickmen[appState.selectedIndex];
+            if (!selectedStickman) return;
+
+            // 拖拽关节
+            if (appState.isDraggingJoint) {
+                const worldPos = canvasToWorld(x, y);
+                const localPos = worldToLocal(worldPos.x, worldPos.y, selectedStickman);
+                selectedStickman.joints.forEach(joint => {
+                    if (joint.isDragging) {
+                        joint.x = localPos.x;
+                        joint.y = localPos.y;
+                    }
+                });
+            }
+            // 拖拽整体
+            else if (appState.isDraggingBody) {
+                // 转换鼠标移动增量到世界坐标
+                const worldDx = dx / appState.canvasScale;
+                const worldDy = dy / appState.canvasScale;
+                selectedStickman.offset.x += worldDx;
+                selectedStickman.offset.y += worldDy;
+            }
+
+            drawAllStickmen();
+        });
+
+        // 鼠标松开/离开事件
+        ['mouseup', 'mouseleave'].forEach(event => {
+            canvas.addEventListener(event, () => {
+                // 结束所有拖拽状态
+                allStickmen.forEach(stickman => {
+                    stickman.joints.forEach(joint => {
+                        joint.isDragging = false;
+                    });
+                });
+                appState.isDraggingJoint = false;
+                appState.isDraggingBody = false;
+                appState.isDraggingCanvas = false;
+                appState.isDraggingBackground = false;
+                canvas.classList.remove('dragging');
+                
+                // 更新状态文本
+                if (appState.selectedIndex === -1) {
+                    updateStatus('状态：未选择任何角色（点击角色开始操作）');
+                } else {
+                    const selectedStickman = allStickmen[appState.selectedIndex];
+                    updateStatus(`已选择${characterTypes[selectedStickman.type].name} ${appState.selectedIndex + 1} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+                }
+                
+                drawAllStickmen();
+            });
+        });
+
+        // 鼠标滚轮事件（区分角色缩放、画布缩放和背景缩放）
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // 如果按下Alt键且有背景图，则缩放背景
+            if (appState.isAltPressed && appState.background.image) {
+                const scaleFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                const newScale = Math.max(0.1, Math.min(5, appState.background.scale * scaleFactor));
+                
+                // 计算鼠标在背景上的相对位置，使缩放围绕鼠标点进行
+                const worldPos = canvasToWorld(mouseX, mouseY);
+                const bgX = (worldPos.x - appState.background.offset.x) / appState.background.scale;
+                const bgY = (worldPos.y - appState.background.offset.y) / appState.background.scale;
+                
+                // 应用新缩放
+                appState.background.scale = newScale;
+                
+                // 调整偏移量以保持鼠标位置不变
+                appState.background.offset.x = worldPos.x - bgX * newScale;
+                appState.background.offset.y = worldPos.y - bgY * newScale;
+                
+                bgZoomLevelDisplay.textContent = `${Math.round(appState.background.scale * 100)}%`;
+                updateStatus(`背景缩放已调整为 ${Math.round(appState.background.scale * 100)}%`);
+                drawAllStickmen();
+                return;
+            }
+
+            // 如果选中了角色且鼠标在角色上，则缩放角色
+            if (appState.selectedIndex !== -1) {
+                const selectedStickman = allStickmen[appState.selectedIndex];
+                if (selectedStickman && isPointOnAnyStickman(mouseX, mouseY)) {
+                    // 角色缩放逻辑
+                    if (e.deltaY < 0) {
+                        selectedStickman.scale = Math.min(selectedStickman.scale + 0.1, 3);
+                    } else {
+                        selectedStickman.scale = Math.max(selectedStickman.scale - 0.1, 0.3);
+                    }
+                    updateStatus(`${characterTypes[selectedStickman.type].name} ${appState.selectedIndex + 1} 缩放比例：${selectedStickman.scale.toFixed(1)} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+                    drawAllStickmen();
+                    return;
+                }
+            }
+
+            // 否则缩放画布
+            const mouseWorldPos = canvasToWorld(mouseX, mouseY);
+            
+            // 根据滚轮方向缩放画布
+            if (e.deltaY < 0) {
+                appState.canvasScale = Math.min(appState.canvasScale + 0.1, appState.maxScale);
+            } else {
+                appState.canvasScale = Math.max(appState.canvasScale - 0.1, appState.minScale);
+            }
+
+            // 调整画布偏移，使缩放围绕鼠标位置进行
+            appState.canvasOffset.x = mouseX - mouseWorldPos.x * appState.canvasScale;
+            appState.canvasOffset.y = mouseY - mouseWorldPos.y * appState.canvasScale;
+
+            updateZoomDisplay();
+            updateStatus(appState.selectedIndex === -1 
+                ? `画布缩放: ${Math.round(appState.canvasScale * 100)}% | 未选择角色`
+                : `已选择${characterTypes[allStickmen[appState.selectedIndex].type].name} ${appState.selectedIndex + 1} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+            drawAllStickmen();
+        }, { passive: false });
+
+        // 键盘事件（处理空格键和Alt键）
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                appState.isSpacePressed = true;
+                canvas.style.cursor = 'grab';
+            }
+            if (e.code === 'AltLeft' || e.code === 'AltRight') {
+                appState.isAltPressed = true;
+                if (appState.background.image) {
+                    canvas.style.cursor = 'move';
+                }
+            }
+            
+            // 键盘方向键移动选中角色
+            if (appState.selectedIndex !== -1 && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                const selectedStickman = allStickmen[appState.selectedIndex];
+                const step = 10 / appState.canvasScale; // 步长补偿画布缩放
+                switch(e.key) {
+                    case 'ArrowUp': selectedStickman.offset.y -= step; break;
+                    case 'ArrowDown': selectedStickman.offset.y += step; break;
+                    case 'ArrowLeft': selectedStickman.offset.x -= step; break;
+                    case 'ArrowRight': selectedStickman.offset.x += step; break;
+                }
+                drawAllStickmen();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                appState.isSpacePressed = false;
+                canvas.style.cursor = '';
+            }
+            if (e.code === 'AltLeft' || e.code === 'AltRight') {
+                appState.isAltPressed = false;
+                canvas.style.cursor = '';
+            }
+        });
+
+        // 更新缩放显示
+        function updateZoomDisplay() {
+            zoomLevelDisplay.textContent = `${Math.round(appState.canvasScale * 100)}%`;
+        }
+
+        // 更新状态文本
+        function updateStatus(text) {
+            statusText.textContent = text;
+        }
+
+        // 增加角色按钮
+        addStickmanBtn.addEventListener('click', () => {
+            const type = typeSelector.value;
+            const typeConfig = characterTypes[type];
+            const colorIndex = allStickmen.length % stickmanColors.length;
+            
+            // 新角色位置偏移（网格排列，避免重叠）
+            const col = allStickmen.length % 4; // 4列布局
+            const row = Math.floor(allStickmen.length / 4);
+            const offsetX = 250 * col;
+            const offsetY = 350 * row;
+
+            allStickmen.push({
+                type: type,
+                joints: JSON.parse(JSON.stringify(typeConfig.joints)),
+                connections: typeConfig.connections,
+                color: stickmanColors[colorIndex],
+                scale: 1,
+                offset: { x: offsetX, y: offsetY },
+                initialOffset: { x: offsetX, y: offsetY } // 记录初始位置
+            });
+
+            // 添加后自动选中新角色
+            appState.selectedIndex = allStickmen.length - 1;
+            updateSelector();
+            updateStatus(`已添加并选择${typeConfig.name} ${allStickmen.length} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+            drawAllStickmen();
+        });
+
+        // 姿态归零按钮
+        resetBtn.addEventListener('click', () => {
+            if (appState.selectedIndex === -1) {
+                updateStatus('状态：请先选择一个角色再进行归零操作');
+                return;
+            }
+
+            const stickman = allStickmen[appState.selectedIndex];
+            if (stickman) {
+                // 恢复初始关节、缩放和位置
+                const typeConfig = characterTypes[stickman.type];
+                const resetJoints = JSON.parse(JSON.stringify(typeConfig.joints));
+                stickman.joints = resetJoints;
+                stickman.scale = 1;
+                stickman.offset = { ...stickman.initialOffset }; // 恢复到创建时的位置
+                updateStatus(`${characterTypes[stickman.type].name} ${appState.selectedIndex + 1} 已恢复初始姿态 | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 删除角色按钮
+        deleteStickmanBtn.addEventListener('click', () => {
+            if (appState.selectedIndex === -1) {
+                updateStatus('状态：请先选择一个角色再进行删除操作');
+                return;
+            }
+            
+            if (allStickmen.length <= 1) {
+                updateStatus('状态：至少需要保留一个角色，无法删除');
+                return;
+            }
+            
+            const stickman = allStickmen[appState.selectedIndex];
+            if (confirm(`确定要删除${characterTypes[stickman.type].name} ${appState.selectedIndex + 1}吗？`)) {
+                allStickmen.splice(appState.selectedIndex, 1);
+                appState.selectedIndex = -1;
+                updateSelector();
+                updateStatus(`已删除选中的角色 | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 调整画布大小按钮
+        resizeCanvasBtn.addEventListener('click', () => {
+            const width = Math.max(300, parseInt(canvasWidthInput.value) || 1920);
+            const height = Math.max(200, parseInt(canvasHeightInput.value) || 1080);
+            
+            canvas.width = width;
+            canvas.height = height;
+            updateStatus(`画布已调整为 ${width}×${height} 像素 | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+            canvasWidthInput.value = width;
+            canvasHeightInput.value = height;
+            drawAllStickmen();
+        });
+
+        // 画布放大按钮
+        zoomInBtn.addEventListener('click', () => {
+            if (appState.canvasScale < appState.maxScale) {
+                appState.canvasScale += 0.1;
+                updateZoomDisplay();
+                updateStatus(appState.selectedIndex === -1 
+                    ? `画布缩放: ${Math.round(appState.canvasScale * 100)}% | 未选择角色`
+                    : `已选择${characterTypes[allStickmen[appState.selectedIndex].type].name} ${appState.selectedIndex + 1} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 画布缩小按钮
+        zoomOutBtn.addEventListener('click', () => {
+            if (appState.canvasScale > appState.minScale) {
+                appState.canvasScale -= 0.1;
+                updateZoomDisplay();
+                updateStatus(appState.selectedIndex === -1 
+                    ? `画布缩放: ${Math.round(appState.canvasScale * 100)}% | 未选择角色`
+                    : `已选择${characterTypes[allStickmen[appState.selectedIndex].type].name} ${appState.selectedIndex + 1} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 重置视图按钮
+        resetViewBtn.addEventListener('click', () => {
+            appState.canvasScale = 1;
+            appState.canvasOffset = { x: 0, y: 0 };
+            updateZoomDisplay();
+            updateStatus(appState.selectedIndex === -1 
+                ? `画布已重置为默认视图 | 未选择角色`
+                : `已选择${characterTypes[allStickmen[appState.selectedIndex].type].name} ${appState.selectedIndex + 1} | 画布已重置为默认视图`);
+            drawAllStickmen();
+        });
+
+        // 导出图像按钮（参考画板的实现方式）
+        exportImageBtn.addEventListener('click', async () => {
+            // 防止重复点击
+            if (isExporting) {
+                console.log('[stickman-editor] 正在导出中，请稍候...');
+                updateStatus('正在导出中，请稍候...');
+                return;
+            }
+            
+            try {
+                isExporting = true;
+                exportImageBtn.disabled = true;
+                exportImageBtn.style.opacity = '0.6';
+                exportImageBtn.style.cursor = 'not-allowed';
+                
+                console.log('[stickman-editor] 导出图像按钮被点击');
+                updateStatus('正在导出图像...');
+                
+                // 创建临时canvas用于导出（不包含边界框）
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = canvas.width;
+                exportCanvas.height = canvas.height;
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                // 设置白色背景
+                exportCtx.fillStyle = '#ffffff';
+                exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                
+                // 绘制背景图片（如果有）
+                if (appState.background.image) {
+                    exportCtx.save();
+                    exportCtx.translate(appState.background.offset.x, appState.background.offset.y);
+                    exportCtx.scale(appState.background.scale, appState.background.scale);
+                    exportCtx.globalAlpha = appState.background.opacity / 100;
+                    exportCtx.drawImage(
+                        appState.background.image,
+                        -appState.background.image.width / 2,
+                        -appState.background.image.height / 2,
+                        appState.background.image.width,
+                        appState.background.image.height
+                    );
+                    exportCtx.globalAlpha = 1;
+                    exportCtx.restore();
+                }
+                
+                // 绘制所有角色（使用原始尺寸，不考虑视图缩放）
+                allStickmen.forEach((stickman) => {
+                    const { color, scale, offset, joints, connections } = stickman;
+                    
+                    // 绘制身体结构
+                    connections.forEach(connection => {
+                        const fromJoint = joints[connection[0]];
+                        const toJoint = joints[connection[1]];
+                        exportCtx.beginPath();
+                        exportCtx.moveTo(
+                            fromJoint.x * scale + offset.x,
+                            fromJoint.y * scale + offset.y
+                        );
+                        exportCtx.lineTo(
+                            toJoint.x * scale + offset.x,
+                            toJoint.y * scale + offset.y
+                        );
+                        exportCtx.strokeStyle = color.line;
+                        exportCtx.lineWidth = 5 * scale;
+                        exportCtx.stroke();
+                    });
+                    
+                    // 绘制关节点
+                    joints.forEach(joint => {
+                        exportCtx.beginPath();
+                        exportCtx.arc(
+                            joint.x * scale + offset.x,
+                            joint.y * scale + offset.y,
+                            joint.r * scale,
+                            0,
+                            Math.PI * 2
+                        );
+                        exportCtx.fillStyle = color.joint;
+                        exportCtx.fill();
+                        exportCtx.strokeStyle = '#fff';
+                        exportCtx.lineWidth = 2 * scale;
+                        exportCtx.stroke();
+                    });
+                });
+                
+                // 使用 toDataURL 获取图像数据（参考画板的方式）
+                const imageDataUrl = exportCanvas.toDataURL('image/png');
+                
+                // 使用postMessage发送消息给父窗口（ComfyUI）
+                if (window.parent && window.parent !== window) {
+                    // 发送消息给父窗口
+                    console.log('[stickman-editor] 准备发送消息给父窗口，数据大小:', imageDataUrl.length);
+                    window.parent.postMessage({
+                        type: 'exportImage',
+                        imageDataUrl: imageDataUrl
+                    }, '*'); // 使用 '*' 因为可能跨域
+                    
+                    updateStatus(`图像已导出并添加到ComfyUI工作流 (${canvas.width}×${canvas.height}px)`);
+                    console.log('[stickman-editor] ✓ 已发送导出图像消息给父窗口');
+                } else {
+                    // 如果不在iframe中，则下载文件
+                    const blob = await (await fetch(imageDataUrl)).blob();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `stickman-editor-${Date.now()}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    updateStatus(`图像已导出 (${canvas.width}×${canvas.height}px)`);
+                }
+                
+            } catch (error) {
+                console.error('[stickman-editor] 导出图像失败:', error);
+                console.error('[stickman-editor] 错误堆栈:', error.stack);
+                updateStatus('导出图像失败，请重试: ' + error.message);
+            } finally {
+                // 确保在所有情况下都重置导出状态
+                isExporting = false;
+                exportImageBtn.disabled = false;
+                exportImageBtn.style.opacity = '1';
+                exportImageBtn.style.cursor = 'pointer';
+                console.log('[stickman-editor] 导出状态已重置');
+            }
+        });
+
+        // 选择器变化事件
+        stickmanSelector.addEventListener('change', (e) => {
+            const selected = parseInt(e.target.value);
+            appState.selectedIndex = selected;
+            
+            if (selected === -1) {
+                updateStatus(`状态：未选择任何角色 | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+            } else {
+                const selectedStickman = allStickmen[selected];
+                updateStatus(`已选择${characterTypes[selectedStickman.type].name} ${selected + 1} | 画布缩放: ${Math.round(appState.canvasScale * 100)}%`);
+            }
+            
+            drawAllStickmen();
+        });
+
+        // 背景图片上传按钮
+        document.querySelector('label[for="bgImageInput"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            bgImageInput.click();
+        });
+
+        // 处理背景图片上传
+        bgImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // 检查文件类型
+            if (!file.type.startsWith('image/')) {
+                alert('请上传图片文件（JPG、PNG等）');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    // 重置背景属性
+                    appState.background.image = img;
+                    appState.background.scale = 1;
+                    appState.background.offset = { x: 0, y: 0 };
+                    appState.background.initialOffset = { x: 0, y: 0 };
+                    appState.background.initialScale = 1;
+                    
+                    // 更新UI
+                    bgZoomLevelDisplay.textContent = `${Math.round(appState.background.scale * 100)}%`;
+                    updateStatus(`已加载背景图片 | 透明度: ${appState.background.opacity}%`);
+                    drawAllStickmen();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 移除背景图片
+        removeBgBtn.addEventListener('click', () => {
+            if (appState.background.image) {
+                appState.background.image = null;
+                updateStatus('已移除背景图片');
+                drawAllStickmen();
+            } else {
+                updateStatus('当前没有背景图片可移除');
+            }
+        });
+
+        // 背景透明度调整
+        bgOpacitySlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            appState.background.opacity = value;
+            opacityValueDisplay.textContent = `${value}%`;
+            
+            if (appState.background.image) {
+                updateStatus(`背景透明度已调整为 ${value}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 背景放大按钮
+        bgZoomInBtn.addEventListener('click', () => {
+            if (!appState.background.image) return;
+            
+            if (appState.background.scale < 5) {
+                appState.background.scale += 0.1;
+                bgZoomLevelDisplay.textContent = `${Math.round(appState.background.scale * 100)}%`;
+                updateStatus(`背景缩放已调整为 ${Math.round(appState.background.scale * 100)}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 背景缩小按钮
+        bgZoomOutBtn.addEventListener('click', () => {
+            if (!appState.background.image) return;
+            
+            if (appState.background.scale > 0.1) {
+                appState.background.scale -= 0.1;
+                bgZoomLevelDisplay.textContent = `${Math.round(appState.background.scale * 100)}%`;
+                updateStatus(`背景缩放已调整为 ${Math.round(appState.background.scale * 100)}%`);
+                drawAllStickmen();
+            }
+        });
+
+        // 重置背景按钮
+        resetBgBtn.addEventListener('click', () => {
+            if (!appState.background.image) {
+                updateStatus('没有背景图片可重置');
+                return;
+            }
+            
+            appState.background.scale = appState.background.initialScale;
+            appState.background.offset = { ...appState.background.initialOffset };
+            appState.background.opacity = 100;
+            
+            // 更新UI
+            bgOpacitySlider.value = 100;
+            opacityValueDisplay.textContent = '100%';
+            bgZoomLevelDisplay.textContent = `${Math.round(appState.background.scale * 100)}%`;
+            updateStatus('背景已重置为初始状态');
+            drawAllStickmen();
+        });
+
+        // 窗口大小变化时自动调整画布容器大小
+        function resizeCanvasContainer() {
+            const headerHeight = document.querySelector('.header').offsetHeight;
+            const controlPanelHeight = document.querySelector('.control-panel').offsetHeight;
+            const backgroundControlsHeight = document.querySelector('.background-controls').offsetHeight;
+            const windowHeight = window.innerHeight;
+            
+            const canvasContainerHeight = windowHeight - headerHeight - controlPanelHeight - backgroundControlsHeight;
+            canvasContainer.style.height = `${canvasContainerHeight}px`;
+        }
+
+        // 初始化窗口大小调整事件
+        window.addEventListener('resize', resizeCanvasContainer);
+        
+        // 初始化
+        resizeCanvasContainer();
+        updateSelector();
+        updateZoomDisplay();
+        opacityValueDisplay.textContent = `${appState.background.opacity}%`;
+        bgZoomLevelDisplay.textContent = `${Math.round(appState.background.scale * 100)}%`;
+        updateStatus('状态：未选择任何角色（点击"增加角色"添加角色）');
+        updateBackgroundStatus();
+        drawAllStickmen();
+    </script>
+</body>
+</html>
